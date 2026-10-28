@@ -3,32 +3,31 @@
 namespace App\Exports;
 
 use App\Models\Product;
-use Maatwebsite\Excel\Concerns\FromQuery;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
+use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\Exportable;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 
-class ProductExport implements FromQuery, WithHeadings, WithMapping
+class ProductExport implements FromCollection, WithHeadings, WithMapping
 {
     use Exportable;
 
     public function __construct(
-        protected ?int $categoryId = null
+        protected readonly ?int $categoryId = null
     ) {
     }
 
-    public function query()
+    public function collection(): Collection
     {
-        $query = Product::query()
-            ->selectRaw('products.*, categories.name as category_name')
-            ->join('categories', 'categories.id', '=', 'products.category_id')
-            ->withTrashed();
+        $query = Product::query()->withTrashed();
 
         if ($this->categoryId !== null) {
-            $query->where('products.category_id', $this->categoryId);
+            $query->where('category_id', $this->categoryId);
         }
 
-        return $query;
+        return $query->get();
     }
 
     public function headings(): array
@@ -52,7 +51,7 @@ class ProductExport implements FromQuery, WithHeadings, WithMapping
         return [
             $row->id,
             $row->name,
-            $row->category_name,
+            $row->category?->name ?? '',
             $row->description,
             $row->price,
             $row->stock,

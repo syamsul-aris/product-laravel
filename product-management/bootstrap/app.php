@@ -13,7 +13,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        if (app()->runningInConsole() && env('APP_ENV') === 'testing') {
+            $middleware->removeFromGroup('web', \Illuminate\Foundation\Http\Middleware\PreventRequestForgery::class);
+        }
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

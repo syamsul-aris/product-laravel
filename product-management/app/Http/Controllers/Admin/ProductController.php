@@ -5,24 +5,22 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
-use App\Http\Resources\ProductResource;
 use App\Models\Category;
 use App\Models\Product;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
+use Illuminate\View\View;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\ProductExport;
 
 class ProductController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index(Request $request)
+    public function index(Request $request): View
     {
         $products = Product::with('category')
-            ->when($request->filled('status'), fn ($q) => $q->where('enabled', $request->string('status')->boolean()))
+            ->when($request->filled('status'), function ($q) use ($request) {
+                $q->where('enabled', (bool) $request->string('status')->toString() === '1');
+            })
             ->orderBy('id', 'desc')
             ->paginate(15);
 
@@ -32,19 +30,13 @@ class ProductController extends Controller
         ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function create(): View
     {
         return view('admin.products.create', [
             'categories' => Category::pluck('name', 'id'),
         ]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(StoreProductRequest $request): RedirectResponse
     {
         Product::create($request->validated());
@@ -53,32 +45,21 @@ class ProductController extends Controller
             ->with('success', 'Product created successfully.');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Product $product)
+    public function show(Product $product): View
     {
         $product->load('category');
 
         return view('admin.products.show', ['product' => $product]);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Product $product)
+    public function edit(Product $product): View
     {
-        $product->load('category');
-
         return view('admin.products.edit', [
-            'product'    => $product,
+            'product' => $product,
             'categories' => Category::pluck('name', 'id'),
         ]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(UpdateProductRequest $request, Product $product): RedirectResponse
     {
         $product->update($request->validated());
@@ -87,9 +68,6 @@ class ProductController extends Controller
             ->with('success', 'Product updated successfully.');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Product $product): RedirectResponse
     {
         $product->delete();
@@ -98,17 +76,11 @@ class ProductController extends Controller
             ->with('success', 'Product deleted successfully.');
     }
 
-    /**
-     * Export products to Excel.
-     */
-    public function export()
+    public function export(): \Illuminate\Http\Response|\Illuminate\Http\RedirectResponse
     {
         return Excel::download(new ProductExport, 'products.xlsx');
     }
 
-    /**
-     * Bulk delete products (soft delete).
-     */
     public function bulkDestroy(Request $request): RedirectResponse
     {
         $request->validate([

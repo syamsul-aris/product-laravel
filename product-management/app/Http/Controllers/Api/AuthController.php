@@ -3,15 +3,43 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use OpenApi\Attributes as OA;
 
 class AuthController extends Controller
 {
-    /**
-     * Log a user in and return a Sanctum token.
-     */
+    #[OA\Post(
+        path: '/auth/login',
+        summary: 'Login',
+        description: 'Authenticate and receive a Sanctum token.',
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                properties: [
+                    new OA\Property(property: 'email', type: 'string', format: 'email', example: 'admin@example.com'),
+                    new OA\Property(property: 'password', type: 'string', example: 'password'),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Login successful',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'message', type: 'string'),
+                        new OA\Property(property: 'token', type: 'string'),
+                        new OA\Property(property: 'user', type: 'object'),
+                    ]
+                )
+            ),
+            new OA\Response(response: 422, description: 'Validation error'),
+        ]
+    )]
     public function login(Request $request): JsonResponse
     {
         $credentials = $request->validate([
@@ -19,9 +47,15 @@ class AuthController extends Controller
             'password' => ['required'],
         ]);
 
-        $user = $this->getAuthUser($credentials['email'], $credentials['password']);
+        $user = User::where('email', $credentials['email'])->first();
 
-        $token = $user->createToken('admin-token')->plainTextToken;
+        if (! $user || ! Hash::check($credentials['password'], $user->password)) {
+            throw ValidationException::withMessages([
+                'email' => ['The provided credentials are incorrect.'],
+            ]);
+        }
+
+        $token = $user->createToken('api-token')->plainTextToken;
 
         return response()->json([
             'message' => 'Login successful.',
@@ -35,9 +69,15 @@ class AuthController extends Controller
         ]);
     }
 
-    /**
-     * Log the authenticated user out and revoke the current token.
-     */
+    #[OA\Post(
+        path: '/auth/logout',
+        summary: 'Logout',
+        description: 'Revoke the current Sanctum token.',
+        security: [['sanctum' => []]],
+        responses: [
+            new OA\Response(response: 200, description: 'Logged out'),
+        ]
+    )]
     public function logout(Request $request): JsonResponse
     {
         $request->user()->currentAccessToken()->delete();
@@ -47,9 +87,23 @@ class AuthController extends Controller
         ]);
     }
 
-    /**
-     * Return the authenticated user.
-     */
+    #[OA\Get(
+        path: '/auth/user',
+        summary: 'Get authenticated user',
+        description: 'Return the authenticated user payload.',
+        security: [['sanctum' => []]],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Authenticated user',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'data', type: 'object'),
+                    ]
+                )
+            ),
+        ]
+    )]
     public function user(Request $request): JsonResponse
     {
         return response()->json([
@@ -60,28 +114,5 @@ class AuthController extends Controller
                 'is_admin' => $request->user()->is_admin,
             ],
         ]);
-    }
-
-    private function getAuthUser(string $email, string $password): object
-    {
-        $user = $this->getUserByEmail($email);
-
-        if (! $user || ! $this->verifyPassword($password, $user)) {
-            throw ValidationException::withMessages([
-                'email' => ['The provided credentials are incorrect.'],
-            ]);
-        }
-
-        return $user;
-    }
-
-    private function getUserByEmail(string $email): ?object
-    {
-        return \App\Models\User::where('email', $email)->first();
-    }
-
-    private function verifyPassword(string $plain, object $user): bool
-    {
-        return \Illuminate\Support\Facades\Hash::check($plain, $user->password);
     }
 }

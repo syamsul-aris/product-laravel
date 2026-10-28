@@ -1,11 +1,20 @@
 <?php
 
-namespace App\Http\Controllers\api;
+namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Http\Resources\CategoryResource;
+use App\Models\Category;
+use Illuminate\Http\JsonResponse;
 
 class CategoryController extends Controller
 {
-    //
+    public function index(): JsonResponse
+    {
+        $categories = Category::orderBy('name')->get();
+
+        return response()->json([
+            'data' => CategoryResource::collection($categories),
+        ]);
+    }
 }

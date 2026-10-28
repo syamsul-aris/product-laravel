@@ -3,48 +3,52 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
-    public function login()
+    public function login(): \Illuminate\Http\RedirectResponse|\Illuminate\View\View
     {
+        if (Auth::guard('admin')->check()) {
+            return redirect()->intended('admin/dashboard');
+        }
+
         return view('admin.auth.login');
     }
 
-    public function authenticate(Request $request): RedirectResponse
+    public function loginPost(Request $request): \Illuminate\Http\RedirectResponse
     {
         $credentials = $request->validate([
             'email'    => ['required', 'email'],
             'password' => ['required'],
         ]);
 
-        $user = \App\Models\User::where('email', $credentials['email'])->first();
+        $user = User::where('email', $credentials['email'])->first();
 
-        if (! $user || ! Hash::check($credentials['password'], $user)) {
+        if (! $user || ! Hash::check($credentials['password'], $user->password)) {
             throw ValidationException::withMessages([
                 'email' => ['The provided credentials are incorrect.'],
             ]);
         }
 
-        if (! $user->is_admin) {
-            throw ValidationException::withMessages([
-                'email' => ['You do not have permission to access the admin panel.'],
-            ]);
-        }
+        Auth::guard('admin')->login($user);
 
-        auth()->login($user);
+        $request->session()->regenerate();
 
-        return redirect()->intended(route('admin.dashboard'));
+        return redirect()->intended('admin/dashboard');
     }
 
-    public function logout(Request $request): RedirectResponse
+    public function logout(Request $request): \Illuminate\Http\RedirectResponse
     {
-        auth()->logout();
+        Auth::guard('admin')->logout();
 
-        return redirect()->route('admin.login');
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect('/');
     }
 }
