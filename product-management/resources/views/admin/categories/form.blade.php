@@ -1,4 +1,40 @@
-@if (isset($category))
+@isset($category)
+<div class="space-y-6">
+
+    <!-- Header -->
+    <div>
+        <h1 class="text-2xl font-semibold tracking-tight text-text">Edit Category</h1>
+        <p class="mt-1 text-sm text-text-muted">Update the category name below.</p>
+    </div>
+
+    <form action="{{ route('admin.categories.update', $category) }}" method="POST" class="space-y-5">
+        @csrf
+        @method('PUT')
+
+        <div class="rounded-2xl border border-border bg-surface p-6 shadow-card">
+            <div class="space-y-1.5">
+                <label for="name" class="text-sm font-medium text-text">Category name</label>
+                <input id="name" type="text" name="name" value="{{ old('name', $category->name) }}" required
+                    class="block w-full rounded-xl border border-border bg-surface px-3.5 py-2.5 text-sm text-text shadow-sm transition-colors placeholder:text-text-muted focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500">
+                @error('name')
+                    <p class="text-xs text-danger">{{ $message }}</p>
+                @enderror
+            </div>
+        </div>
+
+        <div class="flex flex-wrap items-center justify-end gap-3">
+            <a href="{{ route('admin.categories.index') }}"
+                class="inline-flex items-center gap-1.5 rounded-xl border border-border bg-surface px-4 py-2.5 text-sm font-medium text-text-muted shadow-sm transition-shadow hover:shadow-card-hover">
+                Cancel
+            </a>
+            <button type="submit"
+                class="inline-flex items-center gap-1.5 rounded-xl bg-primary-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2">
+                Update Category
+            </button>
+        </div>
+    </form>
+
+    <!-- Delete -->
     <form method="POST" action="{{ route('admin.categories.destroy', $category) }}" class="space-y-5" onsubmit="return confirm('Delete this category?');">
         @csrf
         @method('DELETE')
@@ -18,10 +54,6 @@
         </div>
 
         <div class="flex flex-wrap items-center justify-end gap-3">
-            <a href="{{ route('admin.categories.index') }}"
-                class="inline-flex items-center gap-1.5 rounded-xl border border-border bg-surface px-4 py-2.5 text-sm font-medium text-text-muted shadow-sm transition-shadow hover:shadow-card-hover">
-                Cancel
-            </a>
             <button type="submit"
                 class="inline-flex items-center gap-1.5 rounded-xl bg-danger px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-danger/90 focus:outline-none focus:ring-2 focus:ring-danger focus:ring-offset-2">
                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
@@ -31,6 +63,7 @@
             </button>
         </div>
     </form>
+</div>
 @else
     <div class="space-y-5">
 
@@ -68,4 +101,4 @@
             </div>
         </form>
     </div>
-@endif
+@endisset

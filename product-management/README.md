@@ -1,58 +1,207 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Product Management — Laravel Admin Dashboard & REST API
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A product management system built for the Laravel Developer Assessment Test. It provides an
+admin dashboard for managing products and categories, and a Sanctum-authenticated RESTful API
+for programmatic access, with Swagger/OpenAPI documentation and Excel export.
 
-## About Laravel
+## Features
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+**Admin Dashboard** (`/admin`)
+- Product CRUD (name, category, description, price, stock, enabled)
+- Product list with filtering by status (enabled/disabled) and pagination
+- Soft delete for products, plus bulk delete (multi-select)
+- Category CRUD
+- Excel export of products (`.xlsx`)
+- Session authentication with a dedicated `admin` guard and `is_admin` authorization
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+**RESTful API** (`/api`)
+- Token auth via Laravel Sanctum (`POST /api/auth/login`)
+- Product create / list / detail / update / delete
+- List filtering by `category_id` and `status`, with pagination metadata
+- Bulk delete (`POST /api/products/bulk-delete`)
+- Excel export (`GET /api/products/export`)
+- Category listing used by the product forms
+- JSON responses include `category_id` **and** nested `category` (`id`, `name`)
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+**Advanced**
+- Validation through Laravel Form Requests (`StoreProductRequest`, `UpdateProductRequest`, `StoreCategoryRequest`)
+- PHPUnit unit + feature tests (46 tests, 200+ assertions)
+- OpenAPI/Swagger docs generated with `darkaonline/l5-swagger` (attributes on controllers)
+- Excel export via **SpartnerNL/Laravel-Excel** (`maatwebsite/excel` package)
 
-## Learning Laravel
+## Tech Stack
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+- Laravel 13 (PHP 8.3+)
+- MySQL (production/local; tests run on in-memory SQLite)
+- Laravel Sanctum (API tokens)
+- maatwebsite/excel (SpartnerNL/Laravel-Excel)
+- l5-swagger / swagger-php (OpenAPI 3 documentation)
+- PHPUnit 12
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+## Setup Instructions
 
 ```bash
-composer require laravel/boost --dev
+# 1. Install PHP dependencies
+composer install
 
-php artisan boost:install
+# 2. Create your environment file (MySQL is the default connection)
+cp .env.example .env
+php artisan key:generate
+
+# 3. Create the MySQL database (default name from .env)
+mysql -u root -e "CREATE DATABASE product_management CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+
+# 4. Run migrations and seed the default admin user
+php artisan migrate --seed
+
+# 5. (Optional) Build front-end assets
+npm install
+npm run build
+
+# 6. Start the application
+php artisan serve
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+The seeder creates the default admin account:
 
-## Contributing
+| Field    | Value              |
+|----------|--------------------|
+| Email    | `admin@example.com` |
+| Password | `password`          |
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+- Admin dashboard: `http://localhost:8000/admin/login`
+- Swagger UI: `http://localhost:8000/api/documentation`
 
-## Code of Conduct
+Regenerate the OpenAPI spec after changing annotations:
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+```bash
+php artisan l5-swagger:generate
+```
 
-## Security Vulnerabilities
+## Running Tests
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+```bash
+php artisan test          # or: php vendor/bin/phpunit
+```
+
+Tests use `sqlite :memory:` (set in `phpunit.xml` with `APP_ENV=testing`), so MySQL is not
+required to run them.
+
+## API Endpoints Documentation
+
+All `/api` endpoints except login require a `Bearer` token obtained from
+`POST /api/auth/login`.
+
+### Authentication
+
+| Method | Endpoint             | Description                    | Auth  |
+|--------|----------------------|--------------------------------|-------|
+| POST   | `/api/auth/login`    | Get a Sanctum token            | No    |
+| GET    | `/api/auth/user`     | Current authenticated user     | Token |
+| POST   | `/api/auth/logout`   | Revoke the current token       | Token |
+
+```bash
+curl -X POST http://localhost:8000/api/auth/login \
+  -H "Accept: application/json" \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@example.com","password":"password"}'
+```
+
+Response: `{ "message": "...", "token": "...", "user": {...} }`
+
+### Products
+
+| Method | Endpoint                        | Description                                   | Query params            |
+|--------|---------------------------------|-----------------------------------------------|-------------------------|
+| GET    | `/api/products`                 | List products (paginated, 15 per page)        | `category_id`, `status` |
+| GET    | `/api/products/{product}`       | Product detail                                | —                       |
+| POST   | `/api/products`                 | Create a product                              | —                       |
+| PUT    | `/api/products/{product}`       | Update a product                              | —                       |
+| DELETE | `/api/products/{product}`       | Soft delete a product                         | —                       |
+| POST   | `/api/products/bulk-delete`     | Bulk delete products (`{"ids": [1, 2, 3]}`)   | —                       |
+| GET    | `/api/products/export`          | Download all products as `.xlsx`              | `category_id`           |
+
+Product payload:
+
+```json
+{
+  "name": "Wireless Mouse",
+  "category_id": 1,
+  "description": "A nice mouse",
+  "price": 29.99,
+  "stock": 100,
+  "enabled": true
+}
+```
+
+Product JSON response (category id + name are included):
+
+```json
+{
+  "data": {
+    "id": 1,
+    "name": "Wireless Mouse",
+    "category_id": 1,
+    "category": { "id": 1, "name": "Electronics" },
+    "description": "A nice mouse",
+    "price": "29.99",
+    "stock": 100,
+    "enabled": true
+  },
+  "meta": { "current_page": 1, "last_page": 1, "per_page": 15, "total": 1 }
+}
+```
+
+### Categories
+
+| Method | Endpoint          | Description       | Auth  |
+|--------|-------------------|-------------------|-------|
+| GET    | `/api/categories` | List all categories | Token |
+
+Interactive documentation (Swagger UI) is served at `/api/documentation`; the generated
+OpenAPI JSON lives in `storage/api-docs/api-docs.json`.
+
+## Assumptions & Design Choices
+
+- **Latest stable Laravel** was used (Laravel 13, PHP 8.3+). Because Laravel 13 uses the
+  streamlined `bootstrap/app.php` structure, there is no `app/Http/Kernel.php`; middleware is
+  configured centrally in `bootstrap/app.php`.
+- **Two interfaces, one model layer.** The admin dashboard uses session auth (the `admin`
+  guard + `is_admin` flag + `auth:admin` middleware), while the API uses stateless Sanctum
+  tokens (`auth:sanctum`). Only authenticated admins receive tokens.
+- **Soft deletes** are used for products (`SoftDeletes` trait) so deletions are recoverable;
+  bulk delete applies the same soft-delete semantics.
+- **Category deletion** is hard (no children products assumption is *not* enforced: deleting
+  a category with products is blocked by the UI flow — categories are selected from a
+  dropdown, and the API only exposes listing them).
+- **`Route::resource` for admin CRUD.** Resource routes registered with a URI prefix
+  (`admin/products`) generate names without the prefix (`products.index`), so the resources
+  are wrapped in `Route::name('admin.')->group(...)` to expose the `admin.products.*` /
+  `admin.categories.*` names the views use. Custom routes (export, bulk-delete) are declared
+  *before* the resource so they are not shadowed by the wildcard `admin/products/{product}`
+  route.
+- **Form Requests** hold all validation rules, including unique-name rules that ignore the
+  current record on update.
+- **Performance**: product/category relations are eager-loaded (`with('category')`), list
+  endpoints paginate, and filters are applied in the query rather than in PHP.
+- **Testing environment**: `phpunit.xml` forces `APP_ENV=testing`, which disables CSRF
+  verification for feature tests while leaving session/auth middleware active — tests
+  exercise the real request pipeline.
+- **Excel package**: the assessment's "SpartnerNL/Laravel-Excel" is installed under its
+  Packagist name `maatwebsite/excel` (the package repository moved to the SpartnerNL org).
+- **MySQL** is the default connection in `.env.example`; tests use in-memory SQLite so the
+  suite runs anywhere without a database server.
+- **Docker** support (assessment bonus) is not included; the project runs with the standard
+  `composer install` + `php artisan serve` flow.
+
+## Security
+
+- CSRF protection via `PreventRequestForgery` on all web routes
+- Passwords hashed with bcrypt (`Hash::make`)
+- Admin routes guarded by `auth:admin`; API routes by `auth:sanctum`
+- Form request validation on every write endpoint
+- API responses rendered as JSON for `api/*` routes (`shouldRenderJsonWhen`)
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+The Laravel framework is open-sourced software licensed by [Taylor Otwell](http://taylorotwell.com).

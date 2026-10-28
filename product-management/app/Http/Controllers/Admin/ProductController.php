@@ -19,7 +19,7 @@ class ProductController extends Controller
     {
         $products = Product::with('category')
             ->when($request->filled('status'), function ($q) use ($request) {
-                $q->where('enabled', (bool) $request->string('status')->toString() === '1');
+                $q->where('enabled', $request->string('status')->toString() === '1');
             })
             ->orderBy('id', 'desc')
             ->paginate(15);
@@ -76,7 +76,7 @@ class ProductController extends Controller
             ->with('success', 'Product deleted successfully.');
     }
 
-    public function export(): \Illuminate\Http\Response|\Illuminate\Http\RedirectResponse
+    public function export(): \Symfony\Component\HttpFoundation\BinaryFileResponse
     {
         return Excel::download(new ProductExport, 'products.xlsx');
     }

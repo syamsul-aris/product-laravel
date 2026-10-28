@@ -100,3 +100,39 @@
         </div>
     </form>
 </div>
+
+<script>
+    (function () {
+        var toggle = document.getElementById('enabled-toggle');
+        var checkbox = document.getElementById('enabled');
+        var label = document.getElementById('enabled-label');
+
+        if (!toggle || !checkbox) return;
+
+        function sync() {
+            var on = checkbox.checked;
+            var knob = toggle.querySelector('span');
+
+            toggle.setAttribute('aria-checked', on ? 'true' : 'false');
+            // Swap the track color: green (success) when enabled, neutral when
+            // disabled. Both classes must be managed together — two bg-*
+            // utilities with equal specificity would otherwise conflict.
+            toggle.classList.toggle('bg-success', on);
+            toggle.classList.toggle('border-success', on);
+            toggle.classList.toggle('bg-surface-2', !on);
+            if (knob) knob.classList.toggle('translate-x-5', on);
+            if (label) label.textContent = on ? 'Enabled' : 'Disabled';
+        }
+
+        toggle.addEventListener('click', function () {
+            checkbox.checked = !checkbox.checked;
+            sync();
+        });
+
+        // Keep the visual in sync when the hidden checkbox is toggled
+        // through its <label for="enabled">.
+        checkbox.addEventListener('change', sync);
+
+        sync();
+    })();
+</script>

@@ -20,9 +20,11 @@ class ProductController extends Controller
     /**
      * List of products (filterable by category).
      */
-    #[OA\Operation(
+    #[OA\Get(
+        path: '/api/products',
         summary: 'List products',
         tags: ['Products'],
+        security: [['sanctum' => []]],
         parameters: [
             new OA\Parameter(name: 'category_id', in: 'query', required: false, schema: new OA\Schema(type: 'integer')),
             new OA\Parameter(name: 'status', in: 'query', required: false, schema: new OA\Schema(type: 'string', enum: ['0', '1'])),
@@ -34,6 +36,7 @@ class ProductController extends Controller
                     new OA\Property(property: 'meta', type: 'object', description: 'Pagination metadata'),
                 ]
             )),
+            new OA\Response(response: 401, description: 'Unauthenticated'),
         ]
     )]
     public function index(Request $request): JsonResponse
@@ -64,9 +67,11 @@ class ProductController extends Controller
     /**
      * Create a new product.
      */
-    #[OA\Operation(
+    #[OA\Post(
+        path: '/api/products',
         summary: 'Create product',
         tags: ['Products'],
+        security: [['sanctum' => []]],
         requestBody: new OA\RequestBody(
             required: true,
             content: new OA\JsonContent(
@@ -87,6 +92,8 @@ class ProductController extends Controller
                     new OA\Property(property: 'message', type: 'string'),
                 ]
             )),
+            new OA\Response(response: 401, description: 'Unauthenticated'),
+            new OA\Response(response: 422, description: 'Validation error'),
         ]
     )]
     public function store(StoreProductRequest $request): JsonResponse
@@ -103,11 +110,13 @@ class ProductController extends Controller
     /**
      * Product detail.
      */
-    #[OA\Operation(
+    #[OA\Get(
+        path: '/api/products/{product}',
         summary: 'Product detail',
         tags: ['Products'],
+        security: [['sanctum' => []]],
         parameters: [
-            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+            new OA\Parameter(name: 'product', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
         ],
         responses: [
             new OA\Response(response: 200, description: 'Product detail', content: new OA\JsonContent(
@@ -115,6 +124,8 @@ class ProductController extends Controller
                     new OA\Property(property: 'data', ref: '#/components/schemas/Product'),
                 ]
             )),
+            new OA\Response(response: 401, description: 'Unauthenticated'),
+            new OA\Response(response: 404, description: 'Product not found'),
         ]
     )]
     public function show(int $id): JsonResponse
@@ -126,6 +137,38 @@ class ProductController extends Controller
         ]);
     }
 
+    #[OA\Put(
+        path: '/api/products/{product}',
+        summary: 'Update product',
+        tags: ['Products'],
+        security: [['sanctum' => []]],
+        parameters: [
+            new OA\Parameter(name: 'product', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+        ],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                properties: [
+                    new OA\Property(property: 'name', type: 'string', example: 'Wireless Mouse'),
+                    new OA\Property(property: 'category_id', type: 'integer', example: 1),
+                    new OA\Property(property: 'description', type: 'string', nullable: true),
+                    new OA\Property(property: 'price', type: 'number', format: 'float', example: 29.99),
+                    new OA\Property(property: 'stock', type: 'integer', example: 100),
+                    new OA\Property(property: 'enabled', type: 'boolean', example: true),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 200, description: 'Updated', content: new OA\JsonContent(
+                properties: [
+                    new OA\Property(property: 'data', ref: '#/components/schemas/Product'),
+                    new OA\Property(property: 'message', type: 'string'),
+                ]
+            )),
+            new OA\Response(response: 401, description: 'Unauthenticated'),
+            new OA\Response(response: 422, description: 'Validation error'),
+        ]
+    )]
     public function update(UpdateProductRequest $request, Product $product): JsonResponse
     {
         $product->update($request->validated());
@@ -140,9 +183,11 @@ class ProductController extends Controller
     /**
      * Delete a product.
      */
-    #[OA\Operation(
+    #[OA\Delete(
+        path: '/api/products/{product}',
         summary: 'Delete product',
         tags: ['Products'],
+        security: [['sanctum' => []]],
         parameters: [
             new OA\Parameter(name: 'product', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
         ],
@@ -152,6 +197,8 @@ class ProductController extends Controller
                     new OA\Property(property: 'message', type: 'string'),
                 ]
             )),
+            new OA\Response(response: 401, description: 'Unauthenticated'),
+            new OA\Response(response: 404, description: 'Product not found'),
         ]
     )]
     public function destroy(Product $product): JsonResponse
@@ -166,9 +213,11 @@ class ProductController extends Controller
     /**
      * Bulk delete products.
      */
-    #[OA\Operation(
+    #[OA\Post(
+        path: '/api/products/bulk-delete',
         summary: 'Bulk delete products',
         tags: ['Products'],
+        security: [['sanctum' => []]],
         requestBody: new OA\RequestBody(
             required: true,
             content: new OA\JsonContent(
@@ -184,6 +233,8 @@ class ProductController extends Controller
                     new OA\Property(property: 'deleted', type: 'integer'),
                 ]
             )),
+            new OA\Response(response: 401, description: 'Unauthenticated'),
+            new OA\Response(response: 422, description: 'Validation error'),
         ]
     )]
     public function bulkDestroy(Request $request): JsonResponse
@@ -205,14 +256,17 @@ class ProductController extends Controller
     /**
      * Export products to Excel.
      */
-    #[OA\Operation(
+    #[OA\Get(
+        path: '/api/products/export',
         summary: 'Export products to Excel',
         tags: ['Products'],
+        security: [['sanctum' => []]],
         parameters: [
             new OA\Parameter(name: 'category_id', in: 'query', required: false, schema: new OA\Schema(type: 'integer')),
         ],
         responses: [
             new OA\Response(response: 200, description: 'Excel file download'),
+            new OA\Response(response: 401, description: 'Unauthenticated'),
         ]
     )]
     public function export(Request $request)

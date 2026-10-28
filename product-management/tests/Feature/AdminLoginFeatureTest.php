@@ -58,11 +58,10 @@ class AdminLoginFeatureTest extends TestCase
             'is_admin' => true,
         ]);
 
-        $response = $this->withoutMiddleware()
-            ->post('/admin/login', [
-                'email'    => 'admin@example.com',
-                'password' => 'password',
-            ]);
+        $response = $this->post('/admin/login', [
+            'email'    => 'admin@example.com',
+            'password' => 'password',
+        ]);
 
         $response->assertRedirect('admin/dashboard');
         $this->assertAuthenticatedAs($user, 'admin');
@@ -75,8 +74,7 @@ class AdminLoginFeatureTest extends TestCase
             'password' => bcrypt('secret'),
         ]);
 
-        $response = $this->withoutMiddleware()
-            ->from('/')
+        $response = $this->from('/')
             ->post('/admin/login', [
                 'email'    => 'admin@example.com',
                 'password' => 'wrong-password',
@@ -91,8 +89,7 @@ class AdminLoginFeatureTest extends TestCase
     {
         $user = User::factory()->create(['is_admin' => true]);
 
-        $this->withoutMiddleware()
-            ->actingAs($user, 'admin')
+        $this->actingAs($user, 'admin')
             ->post('/admin/logout')
             ->assertRedirect('/');
 

@@ -13,8 +13,9 @@ use OpenApi\Attributes as OA;
 class AuthController extends Controller
 {
     #[OA\Post(
-        path: '/auth/login',
+        path: '/api/auth/login',
         summary: 'Login',
+        tags: ['Auth'],
         description: 'Authenticate and receive a Sanctum token.',
         requestBody: new OA\RequestBody(
             required: true,
@@ -70,8 +71,9 @@ class AuthController extends Controller
     }
 
     #[OA\Post(
-        path: '/auth/logout',
+        path: '/api/auth/logout',
         summary: 'Logout',
+        tags: ['Auth'],
         description: 'Revoke the current Sanctum token.',
         security: [['sanctum' => []]],
         responses: [
@@ -88,8 +90,9 @@ class AuthController extends Controller
     }
 
     #[OA\Get(
-        path: '/auth/user',
+        path: '/api/auth/user',
         summary: 'Get authenticated user',
+        tags: ['Auth'],
         description: 'Return the authenticated user payload.',
         security: [['sanctum' => []]],
         responses: [
