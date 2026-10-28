@@ -13,29 +13,35 @@
 </head>
 <body class="bg-surface antialiased text-text font-sans">
 
-    <div class="relative flex min-h-screen flex-col items-center justify-center px-4 py-12">
+    <!-- Soft backdrop -->
+    <div class="pointer-events-none fixed inset-0 -z-10">
+        <div class="absolute inset-x-0 top-0 h-72 bg-linear-to-b from-primary-100 to-transparent"></div>
+        <div class="absolute left-1/2 top-24 h-64 w-64 -translate-x-1/2 rounded-full bg-primary-200/50 blur-3xl"></div>
+    </div>
+
+    <div class="flex min-h-screen flex-col items-center justify-center px-4 py-12">
 
         <!-- Brand -->
-        <div class="mb-8">
-            <a href="/" class="inline-flex items-center gap-2 text-lg font-semibold tracking-tight text-text">
-                <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-primary-600 text-sm font-bold text-white shadow-sm">P</span>
+        <div class="mb-8 text-center">
+            <a href="/" class="inline-flex items-center gap-2.5 text-lg font-semibold tracking-tight text-text">
+                <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-primary-600 text-sm font-bold text-white shadow-sm">P</span>
                 {{ config('app.name') }}
             </a>
         </div>
 
         <!-- Card -->
-        <div class="w-full max-w-sm rounded-2xl border border-border bg-surface shadow-card-hover transition-shadow">
+        <div class="w-full max-w-sm rounded-3xl border border-border bg-surface p-6 shadow-card-hover sm:p-8">
 
-            <div class="border-b border-border px-6 py-5">
+            <div class="mb-6">
                 <h1 class="text-xl font-semibold tracking-tight">Sign in</h1>
                 <p class="mt-1 text-sm text-text-muted">Access the admin panel to manage products and categories.</p>
             </div>
 
-            <form method="POST" action="{{ route('admin.login.perform') }}" class="px-6 py-6">
+            <form method="POST" action="{{ route('admin.login.perform') }}">
                 @csrf
 
                 @if ($errors->any())
-                    <div class="mb-4 rounded-xl border border-danger/30 bg-danger/10 p-4">
+                    <div class="mb-5 rounded-2xl border border-danger/30 bg-danger/10 px-4 py-3">
                         <ul class="space-y-1">
                             @foreach ($errors->all() as $error)
                                 <li class="text-sm text-danger">{{ $error }}</li>
@@ -53,7 +59,8 @@
                             value="{{ old('email') }}"
                             required
                             autocomplete="email"
-                            class="block w-full rounded-xl border border-border bg-surface placeholder:text-text-muted text-text shadow-sm transition-colors focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500">
+                            placeholder="admin@example.com"
+                            class="block w-full rounded-xl border border-border bg-surface px-3.5 py-2.5 text-sm text-text shadow-sm transition-colors placeholder:text-text-muted focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500">
                     </div>
 
                     <div>
@@ -63,12 +70,13 @@
                             name="password"
                             required
                             autocomplete="current-password"
-                            class="block w-full rounded-xl border border-border bg-surface placeholder:text-text-muted text-text shadow-sm transition-colors focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500">
+                            placeholder="••••••••"
+                            class="block w-full rounded-xl border border-border bg-surface px-3.5 py-2.5 text-sm text-text shadow-sm transition-colors placeholder:text-text-muted focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500">
                     </div>
                 </div>
 
                 <button type="submit"
-                    class="mt-6 w-full rounded-xl bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2">
+                    class="mt-6 w-full rounded-xl bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2">
                     Sign in
                 </button>
             </form>

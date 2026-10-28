@@ -73,6 +73,42 @@ class AdminDashboardCrudTest extends TestCase
         $this->assertSoftDeleted('products', ['id' => $product->id]);
     }
 
+    public function test_product_can_be_disabled_via_update(): void
+    {
+        $payload = [
+            'name'        => 'Toggle Me',
+            'category_id' => $this->category->id,
+            'description' => 'Toggling test',
+            'price'       => 10.00,
+            'stock'       => 1,
+            'enabled'     => '1',
+        ];
+
+        $this->actingAs($this->admin, 'admin')
+            ->post(route('admin.products.store'), $payload)
+            ->assertRedirect(route('admin.products.index'));
+
+        $product = Product::where('name', 'Toggle Me')->firstOrFail();
+        $this->assertTrue((bool) $product->enabled, 'Product should start enabled.');
+
+        // The edit form must always submit `enabled` — unchecked checkboxes are
+        // omitted from POST bodies, so a hidden enabled=0 field is required.
+        $this->actingAs($this->admin, 'admin')
+            ->get(route('admin.products.edit', $product))
+            ->assertOk()
+            ->assertSee('<input type="hidden" name="enabled" value="0">', false);
+
+        // The form posts enabled=0 via a hidden field when the toggle is off.
+        $this->actingAs($this->admin, 'admin')
+            ->put(route('admin.products.update', $product), array_merge($payload, ['enabled' => '0']))
+            ->assertRedirect(route('admin.products.index'));
+
+        $this->assertFalse(
+            (bool) $product->fresh()->enabled,
+            'Disabling a product through the form must persist to the database.'
+        );
+    }
+
     public function test_products_can_be_bulk_deleted_from_dashboard(): void
     {
         $products = Product::factory()->count(3)->create(['category_id' => $this->category->id]);

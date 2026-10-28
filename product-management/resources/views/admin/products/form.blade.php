@@ -82,6 +82,10 @@
             <label id="enabled-label" class="text-sm font-medium text-text cursor-pointer" for="enabled">
                 {{ old('enabled', $product->enabled ?? false) ? 'Enabled' : 'Disabled' }}
             </label>
+            {{-- Hidden field first: unchecked boxes are not submitted at all,
+                 so this guarantees `enabled` is always present. When checked
+                 the checkbox (declared after it) wins as the last value. --}}
+            <input type="hidden" name="enabled" value="0">
             <input id="enabled" type="checkbox" name="enabled" value="1"
                 class="pointer-events-none absolute h-0 w-0 opacity-0"
                 {{ old('enabled', $product->enabled ?? false) ? 'checked' : '' }}>
