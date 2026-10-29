@@ -17,8 +17,8 @@ class CategoryApiTest extends TestCase
     {
         parent::setUp();
         $this->admin = User::create([
-            'name'     => 'Admin',
-            'email'    => 'admin@example.com',
+            'name' => 'Admin',
+            'email' => 'admin@example.com',
             'password' => bcrypt('password'),
             'is_admin' => true,
         ]);

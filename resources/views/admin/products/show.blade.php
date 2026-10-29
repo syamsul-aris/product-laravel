@@ -35,7 +35,7 @@
             </div>
             <div>
                 <dt class="text-xs font-medium uppercase tracking-wider text-text-muted">Price</dt>
-                <dd class="mt-1 text-sm font-semibold text-text">${{ number_format($product->price, 2) }}</dd>
+                <dd class="mt-1 text-sm font-semibold text-text">RM{{ number_format($product->price, 2) }}</dd>
             </div>
             <div>
                 <dt class="text-xs font-medium uppercase tracking-wider text-text-muted">Stock</dt>

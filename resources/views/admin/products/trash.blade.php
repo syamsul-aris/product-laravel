@@ -58,7 +58,7 @@
                                     </span>
                                     <div class="min-w-0">
                                         <p class="truncate text-sm font-medium text-text">{{ $product->name }}</p>
-                                        <p class="text-xs text-text-muted">${{ number_format($product->price, 2) }}</p>
+                                        <p class="text-xs text-text-muted">RM{{ number_format($product->price, 2) }}</p>
                                     </div>
                                 </div>
                             </td>

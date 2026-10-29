@@ -18,7 +18,7 @@ class ApiAuthTest extends TestCase
         ]);
 
         $this->postJson('/api/auth/login', [
-            'email'    => $admin->email,
+            'email' => $admin->email,
             'password' => 'password',
         ])
             ->assertOk()
@@ -33,7 +33,7 @@ class ApiAuthTest extends TestCase
         ]);
 
         $this->postJson('/api/auth/login', [
-            'email'    => $user->email,
+            'email' => $user->email,
             'password' => 'password',
         ])->assertForbidden();
     }
@@ -50,13 +50,13 @@ class ApiAuthTest extends TestCase
     {
         foreach (range(1, 5) as $attempt) {
             $this->postJson('/api/auth/login', [
-                'email'    => 'nobody@example.com',
+                'email' => 'nobody@example.com',
                 'password' => 'wrong-password',
             ]);
         }
 
         $this->postJson('/api/auth/login', [
-            'email'    => 'nobody@example.com',
+            'email' => 'nobody@example.com',
             'password' => 'wrong-password',
         ])->assertStatus(429);
     }

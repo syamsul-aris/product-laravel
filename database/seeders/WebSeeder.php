@@ -13,7 +13,7 @@ class WebSeeder extends Seeder
         User::firstOrCreate(
             ['email' => 'admin@example.com'],
             [
-                'name'     => 'Admin',
+                'name' => 'Admin',
                 'is_admin' => true,
                 'password' => Hash::make('password'),
             ],

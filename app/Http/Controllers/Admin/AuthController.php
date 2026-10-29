@@ -4,14 +4,16 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use Illuminate\View\View;
 
 class AuthController extends Controller
 {
-    public function login(): \Illuminate\Http\RedirectResponse|\Illuminate\View\View
+    public function login(): RedirectResponse|View
     {
         if (Auth::guard('admin')->check()) {
             return redirect()->intended('admin/dashboard');
@@ -20,10 +22,10 @@ class AuthController extends Controller
         return view('admin.auth.login');
     }
 
-    public function loginPost(Request $request): \Illuminate\Http\RedirectResponse
+    public function loginPost(Request $request): RedirectResponse
     {
         $credentials = $request->validate([
-            'email'    => ['required', 'email'],
+            'email' => ['required', 'email'],
             'password' => ['required'],
         ]);
 
@@ -50,7 +52,7 @@ class AuthController extends Controller
         return redirect()->intended('admin/dashboard');
     }
 
-    public function logout(Request $request): \Illuminate\Http\RedirectResponse
+    public function logout(Request $request): RedirectResponse
     {
         Auth::guard('admin')->logout();
 

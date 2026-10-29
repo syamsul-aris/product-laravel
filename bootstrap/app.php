@@ -3,6 +3,7 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Http\Request;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -14,7 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         if (app()->runningInConsole() && env('APP_ENV') === 'testing') {
-            $middleware->removeFromGroup('web', \Illuminate\Foundation\Http\Middleware\PreventRequestForgery::class);
+            $middleware->removeFromGroup('web', PreventRequestForgery::class);
         }
     })
     ->withExceptions(function (Exceptions $exceptions): void {

@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use OpenApi\Attributes as OA;
@@ -44,7 +44,7 @@ class AuthController extends Controller
     public function login(Request $request): JsonResponse
     {
         $credentials = $request->validate([
-            'email'    => ['required', 'email'],
+            'email' => ['required', 'email'],
             'password' => ['required'],
         ]);
 
@@ -67,11 +67,11 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Login successful.',
-            'token'   => $token,
-            'user'    => [
-                'id'       => $user->id,
-                'name'     => $user->name,
-                'email'    => $user->email,
+            'token' => $token,
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
                 'is_admin' => $user->is_admin,
             ],
         ]);
@@ -118,9 +118,9 @@ class AuthController extends Controller
     {
         return response()->json([
             'data' => [
-                'id'       => $request->user()->id,
-                'name'     => $request->user()->name,
-                'email'    => $request->user()->email,
+                'id' => $request->user()->id,
+                'name' => $request->user()->name,
+                'email' => $request->user()->email,
                 'is_admin' => $request->user()->is_admin,
             ],
         ]);

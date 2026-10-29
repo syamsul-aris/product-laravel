@@ -26,12 +26,12 @@ class UpdateProductRequest extends FormRequest
         $productId = $this->route('product');
 
         return [
-            'name'        => ['sometimes', 'string', 'max:255', Rule::unique('products', 'name')->ignore($productId)],
+            'name' => ['sometimes', 'string', 'max:255', Rule::unique('products', 'name')->ignore($productId)],
             'category_id' => ['sometimes', 'exists:categories,id'],
             'description' => ['nullable', 'string'],
-            'price'       => ['sometimes', 'numeric', 'min:0'],
-            'stock'       => ['sometimes', 'integer', 'min:0'],
-            'enabled'     => ['sometimes', 'boolean'],
+            'price' => ['sometimes', 'numeric', 'min:0'],
+            'stock' => ['sometimes', 'integer', 'min:0'],
+            'enabled' => ['sometimes', 'boolean'],
         ];
     }
 }

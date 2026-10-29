@@ -13,6 +13,7 @@ class AdminDashboardCrudTest extends TestCase
     use RefreshDatabase;
 
     private User $admin;
+
     private Category $category;
 
     protected function setUp(): void
@@ -45,12 +46,12 @@ class AdminDashboardCrudTest extends TestCase
     public function test_product_can_be_created_updated_and_deleted_from_dashboard(): void
     {
         $payload = [
-            'name'        => 'Keyboard',
+            'name' => 'Keyboard',
             'category_id' => $this->category->id,
             'description' => 'Mechanical keyboard',
-            'price'       => 49.99,
-            'stock'       => 5,
-            'enabled'     => '1',
+            'price' => 49.99,
+            'stock' => 5,
+            'enabled' => '1',
         ];
 
         $this->actingAs($this->admin, 'admin')
@@ -76,12 +77,12 @@ class AdminDashboardCrudTest extends TestCase
     public function test_product_can_be_disabled_via_update(): void
     {
         $payload = [
-            'name'        => 'Toggle Me',
+            'name' => 'Toggle Me',
             'category_id' => $this->category->id,
             'description' => 'Toggling test',
-            'price'       => 10.00,
-            'stock'       => 1,
-            'enabled'     => '1',
+            'price' => 10.00,
+            'stock' => 1,
+            'enabled' => '1',
         ];
 
         $this->actingAs($this->admin, 'admin')

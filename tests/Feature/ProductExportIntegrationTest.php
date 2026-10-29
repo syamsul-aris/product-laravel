@@ -16,18 +16,18 @@ class ProductExportIntegrationTest extends TestCase
     {
         $category = Category::create(['name' => 'Electronics']);
         Product::create([
-            'name'        => 'Mouse',
+            'name' => 'Mouse',
             'category_id' => $category->id,
-            'price'       => 10.00,
-            'stock'       => 5,
-            'enabled'     => true,
+            'price' => 10.00,
+            'stock' => 5,
+            'enabled' => true,
         ]);
 
         $export = new ProductExport($category->id);
         $rows = $export->collection();
 
         $this->assertCount(1, $rows);
-        $this->assertInstanceOf(\App\Models\Product::class, $rows[0]);
+        $this->assertInstanceOf(Product::class, $rows[0]);
 
         $mapping = $export->map($rows[0]);
         $this->assertIsArray($mapping);

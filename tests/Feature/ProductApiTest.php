@@ -13,6 +13,7 @@ class ProductApiTest extends TestCase
     use RefreshDatabase;
 
     private User $admin;
+
     private Category $category;
 
     protected function setUp(): void
@@ -20,8 +21,8 @@ class ProductApiTest extends TestCase
         parent::setUp();
 
         $this->admin = User::create([
-            'name'     => 'Admin',
-            'email'    => 'admin@example.com',
+            'name' => 'Admin',
+            'email' => 'admin@example.com',
             'password' => bcrypt('password'),
             'is_admin' => true,
         ]);
@@ -87,7 +88,7 @@ class ProductApiTest extends TestCase
     {
         $product = Product::factory()->create([
             'category_id' => $this->category->id,
-            'name'        => 'Test Product',
+            'name' => 'Test Product',
         ]);
 
         $this->actingAs($this->admin)
@@ -100,12 +101,12 @@ class ProductApiTest extends TestCase
     public function test_product_can_be_created(): void
     {
         $payload = [
-            'name'        => 'Wireless Mouse',
+            'name' => 'Wireless Mouse',
             'category_id' => $this->category->id,
             'description' => 'A nice mouse',
-            'price'       => 29.99,
-            'stock'       => 100,
-            'enabled'     => true,
+            'price' => 29.99,
+            'stock' => 100,
+            'enabled' => true,
         ];
 
         $this->actingAs($this->admin)
@@ -119,11 +120,11 @@ class ProductApiTest extends TestCase
             ->assertJsonPath('data.enabled', true);
 
         $this->assertDatabaseHas('products', [
-            'name'        => 'Wireless Mouse',
+            'name' => 'Wireless Mouse',
             'category_id' => $this->category->id,
-            'price'       => 29.99,
-            'stock'       => 100,
-            'enabled'     => true,
+            'price' => 29.99,
+            'stock' => 100,
+            'enabled' => true,
         ]);
     }
 
@@ -138,16 +139,16 @@ class ProductApiTest extends TestCase
     public function test_product_can_be_updated(): void
     {
         $product = Product::factory()->create([
-            'name'        => 'Old Name',
-            'price'       => 10.00,
-            'stock'       => 10,
-            'enabled'     => false,
+            'name' => 'Old Name',
+            'price' => 10.00,
+            'stock' => 10,
+            'enabled' => false,
             'category_id' => $this->category->id,
         ]);
 
         $this->actingAs($this->admin)
             ->patchJson("/api/products/{$product->id}", [
-                'name'  => 'New Name',
+                'name' => 'New Name',
                 'price' => 15.00,
                 'stock' => 20,
                 'enabled' => true,
@@ -159,10 +160,10 @@ class ProductApiTest extends TestCase
             ->assertJsonPath('data.enabled', true);
 
         $this->assertDatabaseHas('products', [
-            'id'      => $product->id,
-            'name'    => 'New Name',
-            'price'   => 15.00,
-            'stock'   => 20,
+            'id' => $product->id,
+            'name' => 'New Name',
+            'price' => 15.00,
+            'stock' => 20,
             'enabled' => true,
         ]);
     }

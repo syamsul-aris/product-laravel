@@ -1,9 +1,10 @@
 <?php
 
 use App\Http\Controllers\Admin\AuthController as AdminAuthController;
-use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ProductController;
+use App\Http\Controllers\Admin\UserController;
 use App\Http\Middleware\IsAdmin;
 use Illuminate\Support\Facades\Route;
 
@@ -53,5 +54,6 @@ Route::middleware(['auth:admin', IsAdmin::class])->group(function () {
 
         Route::resource('admin/products', ProductController::class);
         Route::resource('admin/categories', CategoryController::class)->except(['show']);
+        Route::resource('admin/users', UserController::class)->except('show');
     });
 });

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Exports\ProductExport;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
@@ -10,7 +11,6 @@ use App\Models\Product;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
-use App\Exports\ProductExport;
 use OpenApi\Attributes as OA;
 
 class ProductController extends Controller
@@ -55,9 +55,9 @@ class ProductController extends Controller
             'data' => ProductResource::collection($products),
             'meta' => [
                 'current_page' => $products->currentPage(),
-                'last_page'    => $products->lastPage(),
-                'per_page'     => $products->perPage(),
-                'total'        => $products->total(),
+                'last_page' => $products->lastPage(),
+                'per_page' => $products->perPage(),
+                'total' => $products->total(),
             ],
         ]);
     }
@@ -100,7 +100,7 @@ class ProductController extends Controller
         $product->load('category');
 
         return response()->json([
-            'data'  => new ProductResource($product),
+            'data' => new ProductResource($product),
             'message' => 'Product created successfully.',
         ], 201);
     }
@@ -173,8 +173,8 @@ class ProductController extends Controller
         $product->load('category');
 
         return response()->json([
-            'data'     => new ProductResource($product),
-            'message'  => 'Product updated successfully.',
+            'data' => new ProductResource($product),
+            'message' => 'Product updated successfully.',
         ]);
     }
 

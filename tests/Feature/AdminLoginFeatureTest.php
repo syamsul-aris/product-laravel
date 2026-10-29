@@ -53,13 +53,13 @@ class AdminLoginFeatureTest extends TestCase
     public function test_successful_login_redirects_to_dashboard(): void
     {
         $user = User::factory()->create([
-            'email'    => 'admin@example.com',
+            'email' => 'admin@example.com',
             'password' => bcrypt('password'),
             'is_admin' => true,
         ]);
 
         $response = $this->post('/admin/login', [
-            'email'    => 'admin@example.com',
+            'email' => 'admin@example.com',
             'password' => 'password',
         ]);
 
@@ -70,13 +70,13 @@ class AdminLoginFeatureTest extends TestCase
     public function test_failed_login_returns_errors(): void
     {
         $user = User::factory()->create([
-            'email'    => 'admin@example.com',
+            'email' => 'admin@example.com',
             'password' => bcrypt('secret'),
         ]);
 
         $response = $this->from('/')
             ->post('/admin/login', [
-                'email'    => 'admin@example.com',
+                'email' => 'admin@example.com',
                 'password' => 'wrong-password',
             ]);
 
@@ -104,7 +104,7 @@ class AdminLoginFeatureTest extends TestCase
         ]);
 
         $response = $this->post('/admin/login', [
-            'email'    => $user->email,
+            'email' => $user->email,
             'password' => 'password',
         ]);
 
@@ -116,13 +116,13 @@ class AdminLoginFeatureTest extends TestCase
     {
         foreach (range(1, 5) as $attempt) {
             $this->post('/admin/login', [
-                'email'    => 'nobody@example.com',
+                'email' => 'nobody@example.com',
                 'password' => 'wrong-password',
             ]);
         }
 
         $this->post('/admin/login', [
-            'email'    => 'nobody@example.com',
+            'email' => 'nobody@example.com',
             'password' => 'wrong-password',
         ])->assertStatus(429);
     }

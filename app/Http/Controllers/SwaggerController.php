@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use OpenApi\Attributes as OA;
 
 #[OA\Info(
@@ -17,7 +16,5 @@ use OpenApi\Attributes as OA;
 #[OA\PathItem(path: '/auth/login')]
 class SwaggerController extends Controller
 {
-    public function index(): void
-    {
-    }
+    public function index(): void {}
 }

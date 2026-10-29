@@ -40,9 +40,9 @@
 
             <!-- Price -->
             <div class="space-y-1.5">
-                <label for="price" class="text-sm font-medium text-text">Price ($)</label>
+                <label for="price" class="text-sm font-medium text-text">Price (RM)</label>
                 <div class="relative">
-                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted">$</span>
+                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted">RM</span>
                     <input id="price" type="number" name="price" step="0.01" min="0" value="{{ old('price', $product->price ?? '') }}" required
                         class="block w-full rounded-xl border border-border bg-surface pl-7 px-3.5 py-2.5 text-sm text-text shadow-sm transition-colors placeholder:text-text-muted focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500">
                 </div>

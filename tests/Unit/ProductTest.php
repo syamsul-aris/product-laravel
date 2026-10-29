@@ -15,10 +15,10 @@ class ProductTest extends TestCase
     {
         $category = Category::create(['name' => 'Electronics']);
         $product = Product::create([
-            'name'        => 'Phone',
+            'name' => 'Phone',
             'category_id' => $category->id,
-            'price'       => 500.00,
-            'stock'       => 10,
+            'price' => 500.00,
+            'stock' => 10,
         ]);
 
         $this->assertInstanceOf(Category::class, $product->category);
@@ -37,10 +37,10 @@ class ProductTest extends TestCase
     public function test_product_price_is_cast_to_decimal(): void
     {
         $product = Product::create([
-            'name'        => 'Item',
+            'name' => 'Item',
             'category_id' => Category::create(['name' => 'Cat'])->id,
-            'price'       => 19.995,
-            'stock'       => 1,
+            'price' => 19.995,
+            'stock' => 1,
         ]);
 
         $this->assertSame(20.0, (float) $product->price);
@@ -49,10 +49,10 @@ class ProductTest extends TestCase
     public function test_product_stock_is_cast_to_integer(): void
     {
         $product = Product::create([
-            'name'        => 'Item',
+            'name' => 'Item',
             'category_id' => Category::create(['name' => 'Cat'])->id,
-            'price'       => 10.00,
-            'stock'       => 10,
+            'price' => 10.00,
+            'stock' => 10,
         ]);
 
         $this->assertIsInt($product->stock);

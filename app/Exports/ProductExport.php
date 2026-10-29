@@ -3,10 +3,9 @@
 namespace App\Exports;
 
 use App\Models\Product;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
-use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\Exportable;
+use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 
@@ -17,8 +16,7 @@ class ProductExport implements FromCollection, WithHeadings, WithMapping
     public function __construct(
         protected readonly ?int $categoryId = null,
         protected readonly ?bool $enabled = null,
-    ) {
-    }
+    ) {}
 
     public function collection(): Collection
     {
