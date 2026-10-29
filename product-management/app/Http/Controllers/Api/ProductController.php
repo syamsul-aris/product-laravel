@@ -6,11 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
 use App\Http\Resources\ProductResource;
-use App\Models\Category;
 use App\Models\Product;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\ProductExport;
 use OpenApi\Attributes as OA;
@@ -128,9 +126,9 @@ class ProductController extends Controller
             new OA\Response(response: 404, description: 'Product not found'),
         ]
     )]
-    public function show(int $id): JsonResponse
+    public function show(Product $product): JsonResponse
     {
-        $product = Product::with('category')->findOrFail($id);
+        $product->load('category');
 
         return response()->json([
             'data' => new ProductResource($product),
@@ -271,6 +269,21 @@ class ProductController extends Controller
     )]
     public function export(Request $request)
     {
-        return Excel::download(new ProductExport($request->query('category_id')), 'products.xlsx');
+        $categoryId = $request->filled('category_id') ? $request->integer('category_id') : null;
+        $enabled = $this->statusFilter($request);
+
+        return Excel::download(new ProductExport($categoryId, $enabled), 'products.xlsx');
+    }
+
+    /**
+     * Resolve the optional ?status=0|1 query filter.
+     */
+    private function statusFilter(Request $request): ?bool
+    {
+        if (! $request->filled('status')) {
+            return null;
+        }
+
+        return $request->string('status')->toString() === '1';
     }
 }

@@ -18,21 +18,51 @@
         </div>
 
         <div class="flex flex-wrap items-center gap-3">
-            <!-- Status filter -->
-            <form method="GET" class="flex items-center gap-2">
-                <label for="status-filter" class="text-sm text-text-muted">Status</label>
+            <!-- Filters -->
+            <form method="GET" class="flex flex-wrap items-center gap-2">
+                <input type="search"
+                    name="q"
+                    value="{{ request('q') }}"
+                    placeholder="Search products…"
+                    class="w-44 rounded-xl border border-border bg-surface px-3 py-2 text-sm text-text shadow-sm transition-colors placeholder:text-text-muted focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500">
+
+                <select name="category_id"
+                    onchange="this.form.submit()"
+                    aria-label="Filter by category"
+                    class="rounded-xl border border-border bg-surface px-3 py-2 text-sm text-text shadow-sm transition-colors focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500">
+                    <option value="">All categories</option>
+                    @foreach ($categories as $id => $name)
+                        <option value="{{ $id }}" {{ request('category_id') == $id ? 'selected' : '' }}>{{ $name }}</option>
+                    @endforeach
+                </select>
+
                 <select name="status"
                     id="status-filter"
                     onchange="this.form.submit()"
+                    aria-label="Filter by status"
                     class="rounded-xl border border-border bg-surface px-3 py-2 text-sm text-text shadow-sm transition-colors focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500">
                     <option value="">All statuses</option>
                     <option value="1" {{ request('status') == '1' ? 'selected' : '' }}>Enabled</option>
                     <option value="0" {{ request('status') == '0' ? 'selected' : '' }}>Disabled</option>
                 </select>
-                @if (request('status') !== null && request('status') !== '')
+
+                <button type="submit"
+                    class="rounded-xl border border-border bg-surface px-3 py-2 text-sm font-medium text-text-muted shadow-sm transition-colors hover:border-border-strong hover:text-text">
+                    Search
+                </button>
+
+                @if (request()->hasAny(['status', 'category_id', 'q']))
                     <a href="{{ route('admin.products.index') }}" class="text-sm text-text-muted underline-offset-4 hover:text-text hover:underline">Reset</a>
                 @endif
             </form>
+
+            <a href="{{ route('admin.products.trash') }}"
+                class="inline-flex items-center gap-1.5 rounded-xl border border-border bg-surface px-3.5 py-2 text-sm font-medium text-text-muted shadow-sm transition-colors hover:border-border-strong hover:text-text">
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.916-2.164-2.097-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.097 1.022-2.097 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                </svg>
+                Trash
+            </a>
 
             <a href="{{ route('admin.products.create') }}"
                 class="inline-flex items-center gap-2 rounded-xl bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2">
@@ -162,7 +192,7 @@
                 </form>
 
                 <div class="flex items-center gap-3">
-                    <a href="{{ route('admin.products.export') }}"
+                    <a href="{{ route('admin.products.export', request()->only(['status', 'category_id'])) }}"
                         class="inline-flex items-center gap-1.5 rounded-xl border border-border bg-surface px-3.5 py-2 text-sm font-medium text-text-muted shadow-sm transition-colors hover:border-border-strong hover:text-text">
                         <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />

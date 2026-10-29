@@ -14,7 +14,9 @@ class IsAdmin
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $user = Auth::guard('admin')->user();
+        // Web routes authenticate via the admin guard; API routes authenticate
+        // via sanctum (which becomes the default guard after auth:sanctum).
+        $user = Auth::guard('admin')->user() ?? $request->user();
 
         if (! $user || ! $user->isAdmin()) {
             return $request->expectsJson()

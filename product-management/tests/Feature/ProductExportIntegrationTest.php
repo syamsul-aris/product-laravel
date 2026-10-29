@@ -51,6 +51,22 @@ class ProductExportIntegrationTest extends TestCase
         $this->assertSame('Novel', $export->map($rows[1])[1]);
     }
 
+    public function test_export_can_filter_by_enabled_status(): void
+    {
+        $category = Category::create(['name' => 'Electronics']);
+        Product::create(['name' => 'On Product', 'category_id' => $category->id, 'price' => 1.00, 'stock' => 1, 'enabled' => true]);
+        Product::create(['name' => 'Off Product', 'category_id' => $category->id, 'price' => 2.00, 'stock' => 1, 'enabled' => false]);
+
+        $enabled = (new ProductExport(null, true))->collection();
+        $disabled = (new ProductExport(null, false))->collection();
+
+        $this->assertCount(1, $enabled);
+        $this->assertSame('On Product', $enabled->first()->name);
+
+        $this->assertCount(1, $disabled);
+        $this->assertSame('Off Product', $disabled->first()->name);
+    }
+
     public function test_export_handles_soft_deleted_products(): void
     {
         $category = Category::create(['name' => 'Electronics']);

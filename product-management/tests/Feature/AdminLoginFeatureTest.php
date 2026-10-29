@@ -95,4 +95,35 @@ class AdminLoginFeatureTest extends TestCase
 
         $this->assertGuest('admin');
     }
+
+    public function test_non_admin_cannot_log_in_to_admin_panel(): void
+    {
+        $user = User::factory()->create([
+            'is_admin' => false,
+            'password' => bcrypt('password'),
+        ]);
+
+        $response = $this->post('/admin/login', [
+            'email'    => $user->email,
+            'password' => 'password',
+        ]);
+
+        $response->assertSessionHasErrors('email');
+        $this->assertGuest('admin');
+    }
+
+    public function test_login_is_rate_limited_after_five_attempts(): void
+    {
+        foreach (range(1, 5) as $attempt) {
+            $this->post('/admin/login', [
+                'email'    => 'nobody@example.com',
+                'password' => 'wrong-password',
+            ]);
+        }
+
+        $this->post('/admin/login', [
+            'email'    => 'nobody@example.com',
+            'password' => 'wrong-password',
+        ])->assertStatus(429);
+    }
 }

@@ -13,15 +13,7 @@
         "laravel/tinker": "^3.0",
         "maatwebsite/excel": "^4.0"
     },
-    "repositories": [
-        {
-            "type": "path",
-            "url": "vendor/l5/swagger",
-            "options": {
-                "symlink": true
-            }
-        }
-    ],
+    "repositories": [],
     "require-dev": {
         "fakerphp/faker": "^1.23",
         "laravel/pail": "^1.2.5",

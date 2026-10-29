@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreCategoryRequest;
 use App\Models\Category;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class CategoryController extends Controller
@@ -46,6 +46,16 @@ class CategoryController extends Controller
 
     public function destroy(Category $category): RedirectResponse
     {
+        // category_id is a constrained foreign key — refuse deletion instead of
+        // letting the query blow up with a 500.
+        $productCount = $category->products()->count();
+
+        if ($productCount > 0) {
+            return redirect()
+                ->route('admin.categories.index')
+                ->with('error', "Cannot delete \"{$category->name}\" — it still has {$productCount} ".Str::plural('product', $productCount).'. Reassign or delete them first.');
+        }
+
         $category->delete();
 
         return redirect()->route('admin.categories.index')

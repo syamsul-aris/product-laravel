@@ -4,7 +4,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\SwaggerController;
-use Illuminate\Http\Request;
+use App\Http\Middleware\IsAdmin;
 use Illuminate\Support\Facades\Route;
 
 /**
@@ -12,9 +12,9 @@ use Illuminate\Support\Facades\Route;
  */
 Route::get('/swagger/info', [SwaggerController::class, 'index']);
 
-Route::post('/auth/login', [AuthController::class, 'login']);
+Route::post('/auth/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', IsAdmin::class])->group(function () {
     /**
      * Authenticated user endpoints.
      */
@@ -35,7 +35,3 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/products/bulk-delete', [ProductController::class, 'bulkDestroy'])
         ->name('api.products.bulk-destroy');
 });
-
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');

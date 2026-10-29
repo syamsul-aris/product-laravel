@@ -122,6 +122,17 @@
                     </div>
                 @endif
 
+                @if ($errors->any())
+                    <div class="mb-6 rounded-2xl border border-danger/30 bg-danger/10 px-4 py-3">
+                        <p class="text-sm font-semibold text-danger">Please fix the following:</p>
+                        <ul class="mt-1 list-disc space-y-0.5 pl-5 text-sm text-danger">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
                 @yield('content')
 
             </main>

@@ -35,6 +35,14 @@ class AuthController extends Controller
             ]);
         }
 
+        // Only admins may enter the dashboard. Generic message avoids
+        // revealing which accounts exist.
+        if (! $user->isAdmin()) {
+            throw ValidationException::withMessages([
+                'email' => ['The provided credentials are incorrect.'],
+            ]);
+        }
+
         Auth::guard('admin')->login($user);
 
         $request->session()->regenerate();

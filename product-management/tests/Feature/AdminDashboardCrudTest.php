@@ -151,6 +151,100 @@ class AdminDashboardCrudTest extends TestCase
             ->assertDontSee('Disabled One');
     }
 
+    public function test_category_with_products_cannot_be_deleted(): void
+    {
+        Product::factory()->create(['category_id' => $this->category->id]);
+
+        $this->actingAs($this->admin, 'admin')
+            ->delete(route('admin.categories.destroy', $this->category))
+            ->assertRedirect(route('admin.categories.index'))
+            ->assertSessionHas('error');
+
+        $this->assertDatabaseHas('categories', ['id' => $this->category->id]);
+    }
+
+    public function test_empty_category_can_be_deleted(): void
+    {
+        $empty = Category::create(['name' => 'Unused']);
+
+        $this->actingAs($this->admin, 'admin')
+            ->delete(route('admin.categories.destroy', $empty))
+            ->assertRedirect(route('admin.categories.index'))
+            ->assertSessionHas('success');
+
+        // Categories soft-delete, so the row remains flagged as deleted.
+        $this->assertSoftDeleted('categories', ['id' => $empty->id]);
+    }
+
+    public function test_deleted_product_can_be_restored_from_trash(): void
+    {
+        $product = Product::factory()->create(['category_id' => $this->category->id]);
+
+        $this->actingAs($this->admin, 'admin')
+            ->delete(route('admin.products.destroy', $product));
+
+        $this->assertSoftDeleted('products', ['id' => $product->id]);
+
+        $this->actingAs($this->admin, 'admin')
+            ->get(route('admin.products.trash'))
+            ->assertOk()
+            ->assertSee($product->name);
+
+        $this->actingAs($this->admin, 'admin')
+            ->post(route('admin.products.restore', $product))
+            ->assertRedirect(route('admin.products.trash'));
+
+        $this->assertNotNull(Product::find($product->id), 'Product should be restored.');
+    }
+
+    public function test_deleted_product_can_be_purged_from_trash(): void
+    {
+        $product = Product::factory()->create(['category_id' => $this->category->id]);
+
+        $this->actingAs($this->admin, 'admin')
+            ->delete(route('admin.products.destroy', $product));
+
+        $this->actingAs($this->admin, 'admin')
+            ->delete(route('admin.products.force-destroy', $product))
+            ->assertRedirect(route('admin.products.trash'));
+
+        $this->assertDatabaseMissing('products', ['id' => $product->id]);
+    }
+
+    public function test_products_index_filters_by_category_and_search(): void
+    {
+        $other = Category::create(['name' => 'Books']);
+        Product::factory()->create(['category_id' => $this->category->id, 'name' => 'Gadget Pro']);
+        Product::factory()->create(['category_id' => $other->id, 'name' => 'Novel Book']);
+
+        $this->actingAs($this->admin, 'admin')
+            ->get('/admin/products?q=Gadget')
+            ->assertOk()
+            ->assertSee('Gadget Pro')
+            ->assertDontSee('Novel Book');
+
+        $this->actingAs($this->admin, 'admin')
+            ->get("/admin/products?category_id={$other->id}")
+            ->assertOk()
+            ->assertSee('Novel Book')
+            ->assertDontSee('Gadget Pro');
+    }
+
+    public function test_export_accepts_the_active_status_filter(): void
+    {
+        Product::factory()->enabled()->create(['category_id' => $this->category->id]);
+        Product::factory()->disabled()->create(['category_id' => $this->category->id]);
+
+        $response = $this->actingAs($this->admin, 'admin')
+            ->get('/admin/products/export?status=0');
+
+        $response->assertOk();
+        $this->assertStringContainsString(
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            $response->headers->get('content-type', '')
+        );
+    }
+
     public function test_category_can_be_created_and_updated_from_dashboard(): void
     {
         $this->actingAs($this->admin, 'admin')

@@ -15,7 +15,8 @@ class ProductExport implements FromCollection, WithHeadings, WithMapping
     use Exportable;
 
     public function __construct(
-        protected readonly ?int $categoryId = null
+        protected readonly ?int $categoryId = null,
+        protected readonly ?bool $enabled = null,
     ) {
     }
 
@@ -25,6 +26,10 @@ class ProductExport implements FromCollection, WithHeadings, WithMapping
 
         if ($this->categoryId !== null) {
             $query->where('category_id', $this->categoryId);
+        }
+
+        if ($this->enabled !== null) {
+            $query->where('enabled', $this->enabled);
         }
 
         return $query->get();

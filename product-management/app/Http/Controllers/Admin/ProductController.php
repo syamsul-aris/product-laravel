@@ -21,8 +21,19 @@ class ProductController extends Controller
             ->when($request->filled('status'), function ($q) use ($request) {
                 $q->where('enabled', $request->string('status')->toString() === '1');
             })
+            ->when($request->filled('category_id'), function ($q) use ($request) {
+                $q->where('category_id', $request->integer('category_id'));
+            })
+            ->when($request->filled('q'), function ($q) use ($request) {
+                $term = '%'.$request->string('q').'%';
+                $q->where(function ($sub) use ($term) {
+                    $sub->where('name', 'like', $term)
+                        ->orWhere('description', 'like', $term);
+                });
+            })
             ->orderBy('id', 'desc')
-            ->paginate(15);
+            ->paginate(15)
+            ->withQueryString();
 
         return view('admin.products.index', [
             'products' => $products,
@@ -76,9 +87,51 @@ class ProductController extends Controller
             ->with('success', 'Product deleted successfully.');
     }
 
-    public function export(): \Symfony\Component\HttpFoundation\BinaryFileResponse
+    public function export(Request $request): \Symfony\Component\HttpFoundation\BinaryFileResponse
     {
-        return Excel::download(new ProductExport, 'products.xlsx');
+        $categoryId = $request->filled('category_id') ? $request->integer('category_id') : null;
+        $enabled = null;
+
+        if ($request->filled('status')) {
+            $enabled = $request->string('status')->toString() === '1';
+        }
+
+        return Excel::download(new ProductExport($categoryId, $enabled), 'products.xlsx');
+    }
+
+    /**
+     * Soft-deleted products awaiting restore.
+     */
+    public function trash(): View
+    {
+        $products = Product::onlyTrashed()
+            ->with('category')
+            ->orderBy('deleted_at', 'desc')
+            ->paginate(15);
+
+        return view('admin.products.trash', ['products' => $products]);
+    }
+
+    /**
+     * Restore a soft-deleted product.
+     */
+    public function restore(Product $product): RedirectResponse
+    {
+        $product->restore();
+
+        return redirect()->route('admin.products.trash')
+            ->with('success', 'Product restored successfully.');
+    }
+
+    /**
+     * Permanently remove a soft-deleted product.
+     */
+    public function forceDestroy(Product $product): RedirectResponse
+    {
+        $product->forceDelete();
+
+        return redirect()->route('admin.products.trash')
+            ->with('success', 'Product permanently deleted.');
     }
 
     public function bulkDestroy(Request $request): RedirectResponse

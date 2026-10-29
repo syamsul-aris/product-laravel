@@ -8,14 +8,18 @@ for programmatic access, with Swagger/OpenAPI documentation and Excel export.
 
 **Admin Dashboard** (`/admin`)
 - Product CRUD (name, category, description, price, stock, enabled)
-- Product list with filtering by status (enabled/disabled) and pagination
+- Product list with search, filtering by category/status, and pagination
 - Soft delete for products, plus bulk delete (multi-select)
-- Category CRUD
-- Excel export of products (`.xlsx`)
-- Session authentication with a dedicated `admin` guard and `is_admin` authorization
+- **Trash**: restore soft-deleted products or purge them forever
+- Category CRUD (deletion is blocked while the category still has products)
+- Excel export of products (`.xlsx`) that respects the active filters
+- Session authentication with a dedicated `admin` guard — only `is_admin` users can log in
+- Login is rate limited (5 attempts / minute / IP)
 
 **RESTful API** (`/api`)
-- Token auth via Laravel Sanctum (`POST /api/auth/login`)
+- Token auth via Laravel Sanctum (`POST /api/auth/login`) — **admin accounts only** (403 otherwise)
+- Every authenticated route re-checks `is_admin` via middleware, not just token issuance
+- Login is rate limited (5 attempts / minute / IP)
 - Product create / list / detail / update / delete
 - List filtering by `category_id` and `status`, with pagination metadata
 - Bulk delete (`POST /api/products/bulk-delete`)
@@ -78,6 +82,22 @@ Regenerate the OpenAPI spec after changing annotations:
 php artisan l5-swagger:generate
 ```
 
+## Docker (bonus)
+
+The repository ships with Docker support — PHP 8.4-FPM, Nginx, and MySQL 8:
+
+```bash
+docker compose up --build -d
+# app runs migrations + seeds admin on first boot
+open http://localhost:8080
+```
+
+- `docker/entrypoint.sh` copies `.env` if missing, generates `APP_KEY`, fixes storage
+  permissions, and runs `php artisan migrate --seed` on every start (idempotent).
+- MySQL is only reachable from inside the compose network; nothing is published to the
+  host.
+- Rebuild after changing `composer.json`: `docker compose up --build`.
+
 ## Running Tests
 
 ```bash
@@ -119,7 +139,7 @@ Response: `{ "message": "...", "token": "...", "user": {...} }`
 | PUT    | `/api/products/{product}`       | Update a product                              | —                       |
 | DELETE | `/api/products/{product}`       | Soft delete a product                         | —                       |
 | POST   | `/api/products/bulk-delete`     | Bulk delete products (`{"ids": [1, 2, 3]}`)   | —                       |
-| GET    | `/api/products/export`          | Download all products as `.xlsx`              | `category_id`           |
+| GET    | `/api/products/export`          | Download products as `.xlsx`                  | `category_id`, `status` |
 
 Product payload:
 
@@ -187,6 +207,20 @@ OpenAPI JSON lives in `storage/api-docs/api-docs.json`.
 - **Testing environment**: `phpunit.xml` forces `APP_ENV=testing`, which disables CSRF
   verification for feature tests while leaving session/auth middleware active — tests
   exercise the real request pipeline.
+- **Admin-only access is enforced twice**: at login (non-admins get the generic
+  "incorrect credentials" message so accounts are not enumerable, and API login returns
+  403) and on every request via the `IsAdmin` middleware on both the `auth:admin` and
+  `auth:sanctum` route groups.
+- **Category deletion guard**: `categories.id` is a constrained foreign key, so the
+  controller refuses deletion (friendly flash error) instead of letting the database
+  throw a 500 when products still reference the category. Categories themselves are
+  soft-deleted.
+- **Soft deletes + trash**: products go to a Trash view where they can be restored or
+  permanently deleted (`restore`/`forceDelete`), so "delete" is never destructive by
+  default.
+- **`is_admin` is mass assignable** on `User` — safe because there is no public
+  registration endpoint and no controller mass-assigns request input into `User`; login
+  only ever reads `email`/`password`.
 - **Excel package**: the assessment's "SpartnerNL/Laravel-Excel" is installed under its
   Packagist name `maatwebsite/excel` (the package repository moved to the SpartnerNL org).
 - **MySQL** is the default connection in `.env.example`; tests use in-memory SQLite so the
@@ -198,8 +232,12 @@ OpenAPI JSON lives in `storage/api-docs/api-docs.json`.
 
 - CSRF protection via `PreventRequestForgery` on all web routes
 - Passwords hashed with bcrypt (`Hash::make`)
-- Admin routes guarded by `auth:admin`; API routes by `auth:sanctum`
+- Admin routes guarded by `auth:admin` **plus** the `IsAdmin` middleware; API routes by
+  `auth:sanctum` **plus** the same `IsAdmin` middleware
+- Login endpoints throttled (`throttle:5,1`) against brute force
+- Generic credential error messages (no user enumeration)
 - Form request validation on every write endpoint
+- Category deletion guarded against the constrained `category_id` foreign key
 - API responses rendered as JSON for `api/*` routes (`shouldRenderJsonWhen`)
 
 ## License

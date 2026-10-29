@@ -56,6 +56,13 @@ class AuthController extends Controller
             ]);
         }
 
+        // The assessment requires the API to be admin-only.
+        if (! $user->isAdmin()) {
+            return response()->json([
+                'message' => 'Admin access is required to use this API.',
+            ], 403);
+        }
+
         $token = $user->createToken('api-token')->plainTextToken;
 
         return response()->json([
